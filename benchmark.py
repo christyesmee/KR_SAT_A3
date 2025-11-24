@@ -1,7 +1,7 @@
 import os, time, subprocess, glob
 
 PUZZLE_DIR = "puzzles"
-TIMEOUT = 60 
+TIMEOUT = 5
 
 files = sorted(glob.glob(os.path.join(PUZZLE_DIR, "*.txt")))
 print(f"Found {len(files)} puzzles. Running benchmark...")

@@ -20,7 +20,7 @@ import argparse
 import sys
 import time
 from encoder import parse_file, grid_to_cnf  
-import solver # Import module to access global variable
+import solver 
 
 def parse_args():
     p = argparse.ArgumentParser()
@@ -31,36 +31,29 @@ def parse_args():
 
 def main():
     args = parse_args()
-
-    # 1. Handle standard SAT files (DIMACS)
     if args.sat:
-        # (Keep this simple for now, though your encoder supports it)
+
         print("DIMACS mode not fully integrated with bulk parser yet.")
         return
-
-    # 2. Handle Sudoku Puzzles (Text / Dot format)
-    puzzles_generator = parse_file(args.inp)
     
+    puzzles_generator = parse_file(args.inp)
+
     use_nc_rule = not args.standard_only
 
     count = 0
     for grid, N, B in puzzles_generator:
         count += 1
         
-        # Encode
+        #encoding
         clauses, num_vars = grid_to_cnf(grid, N, B, use_non_consecutive=use_nc_rule)
         
-        # Solve & Time
+        #start solving
         start_t = time.time()
         status, _ = solver.solve_cnf(clauses, num_vars)
         end_t = time.time()
         duration = end_t - start_t
         
-        # PRINT STATS IN ONE CLEAN LINE FOR BENCHMARK
-        # Format: [PUZZLE] ID: 1 | Time: 0.05s | Result: SAT | Backtracks: 50
-        print(f"[PUZZLE] ID: {count} | Time: {duration:.4f}s | Result: {status} | Backtracks: {solver.BACKTRACK_COUNT}")
-        
-        # Flush stdout so benchmark sees it immediately
+        print(f"[PUZZLE]: {count} | Time: {duration:.4f}s | Result: {status} | Backtracks: {solver.BACKTRACK_COUNT}")
         sys.stdout.flush()
 
 if __name__ == "__main__":

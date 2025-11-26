@@ -13,18 +13,18 @@ HEURISTIC = "mom"
 BACKTRACK_COUNT = 0
 
 
-# Pre-calculate weights for clause lengths 0 to 100
+#pre-calculating the weights for clause lengths 0 to 100 (hoping to solve the search optimization issue ,less computational power used)
 JW_WEIGHTS = [2.0 ** (-i) for i in range(100)] 
 
 def _choose_jw(clauses, assignment):
     scores = {}
     for c in clauses:
-        # Optimization: Use pre-calculated list instead of math.pow
+        #another optimization trieed her: pre-calculated list instead of math.pow
         length = len(c)
         if length < 100:
             w = JW_WEIGHTS[length]
         else:
-            w = 2.0 ** (-length) # Fallback for huge clauses
+            w = 2.0 ** (-length) #implemented a fallback for huge clauses
             
         for lit in c:
             v = abs(lit)
@@ -39,15 +39,12 @@ def _simplify(clauses: List[List[int]], lit: int) -> Optional[List[List[int]]]:
     neg = -lit
 
     for clause in clauses:
-        # Clause satisfied
         if lit in clause:
             continue
 
-        # Remove negation
         if neg in clause:
             new_clause = [x for x in clause if x != neg]
             if not new_clause:
-                # Empty clause → conflict
                 return None
             new_clauses.append(new_clause)
         else:
@@ -55,7 +52,7 @@ def _simplify(clauses: List[List[int]], lit: int) -> Optional[List[List[int]]]:
 
     return new_clauses
 
-# Helper: unit propagation
+#helper for unit propagation
 def _unit_propagate(clauses: List[List[int]], assignment: Dict[int, bool]) -> Tuple[Optional[List[List[int]]], bool]:
     while True:
         unit_lit = None
@@ -80,8 +77,16 @@ def _unit_propagate(clauses: List[List[int]], assignment: Dict[int, bool]) -> Tu
         clauses = _simplify(clauses, unit_lit)
         if clauses is None:
             return None, False
+        
 
-# HEURISTIC FUNCTIONS
+############################################# :)
+#
+#
+#            HEURISTIC FUNCTIONS
+#
+#
+############## :(
+
 def _choose_standard(clauses: List[List[int]], assignment: Dict[int, bool]) -> Optional[int]:
     """choose the first unassigned variable that is found"""
     for clause in clauses:
@@ -154,7 +159,7 @@ def _choose_var(num_vars: int, assignment: Dict[int, bool], clauses: List[List[i
     else:
         return _choose_standard(clauses, assignment)
 
-# DPLL Algorithm
+#DPLL algorithm
 def _dpll(clauses: List[List[int]], assignment: Dict[int, bool], num_vars: int) -> bool:
     global BACKTRACK_COUNT
     
@@ -169,13 +174,11 @@ def _dpll(clauses: List[List[int]], assignment: Dict[int, bool], num_vars: int) 
     if var is None:
         return True
     
-    # --- DEBUG PRINT ---
-    # Only print the VERY FIRST choice (when assignment is empty)
-    if len(assignment) == 0:
-        print(f"[{HEURISTIC}] First Branching Variable Choice: {var}")
-    # -------------------
+    if len(assignment) == 0: #for debugging
+        print(f"[{HEURISTIC}] first branching var = {var}")
 
-    # Try True
+
+    #try True
     new_assignment = assignment.copy()
     new_assignment[var] = True
     new_clauses = _simplify(clauses, var)
@@ -185,7 +188,7 @@ def _dpll(clauses: List[List[int]], assignment: Dict[int, bool], num_vars: int) 
         else:
             BACKTRACK_COUNT += 1
 
-    # Try False
+    #try False
     new_assignment = assignment.copy()
     new_assignment[var] = False
     new_clauses = _simplify(clauses, -var)
@@ -197,7 +200,6 @@ def _dpll(clauses: List[List[int]], assignment: Dict[int, bool], num_vars: int) 
 
     return False
 
-# Final function required by the assignment
 def solve_cnf(clauses: Iterable[Iterable[int]], num_vars: int) -> Tuple[str, None]:
     """
         ("SAT", None)
@@ -207,26 +209,17 @@ def solve_cnf(clauses: Iterable[Iterable[int]], num_vars: int) -> Tuple[str, Non
     BACKTRACK_COUNT = 0
     
     clause_list = [list(c) for c in clauses]
-
-    # --- NEW: Count Initial Propagations ---
-    # We run unit propagation ONCE on the raw puzzle
-    # The dictionary 'test_assign' will contain all forced moves
     _, ok = _unit_propagate(clause_list, {})
     
-    # The number of 'True' items in the dictionary = number of solved cells
-    initial_props = 0
+ 
+    initial_props = 0 #number of solved cells --> if true
     if ok:
-        # We only count standard variables (not temp variables for optimization)
-        # But for simple comparison, just len(assignment) is fine
-        # Since _unit_propagate modifies the assignment dict in place:
         temp_assign = {}
         _unit_propagate(clause_list, temp_assign)
         initial_props = len(temp_assign)
-    # ---------------------------------------
 
     is_sat = _dpll(clause_list, {}, num_vars)
     
-   # Bottom of solver.py
     print(f"[{HEURISTIC.upper()}] Result: {'SAT' if is_sat else 'UNSAT'} | Backtracks: {BACKTRACK_COUNT} | InitProps: {initial_props}")
     if is_sat:
         return "SAT", None

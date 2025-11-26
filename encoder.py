@@ -1,3 +1,24 @@
+"""
+From SAT Assignment Part 1 - Non-consecutive Sudoku Encoder (Puzzle -> CNF)
+
+Replace this code with your solution for assignment 1
+
+Implement: to_cnf(input_path) -> (clauses, num_vars)
+
+You're required to use a variable mapping as follows:
+    var(r,c,v) = r*N*N + c*N + v
+where r,c are in range (0...N-1) and v in (1...N).
+
+You must encode:
+  (1) Exactly one value per cell
+  (2) For each value v and each row r: exactly one column c has v
+  (3) For each value v and each column c: exactly one row r has v
+  (4) For each value v and each sqrt(N)×sqrt(N) box: exactly one cell has v
+  (5) Non-consecutive: orthogonal neighbors cannot differ by 1
+  (6) Clues: unit clauses for the given puzzle
+"""
+
+
 from typing import Tuple, Iterable, List
 import math
 
@@ -10,29 +31,26 @@ def parse_file(input_path: str):
     """
     with open(input_path, "r") as f:
         lines = [l.strip() for l in f if l.strip()]
-
-    # Detect format based on first line
+        
     first_line = lines[0]
     
-    # Case 1: Compact/Dot Format (Multiple puzzles, one per line)
+    #compact puzzles
     if "." in first_line or (len(first_line) > 15 and " " not in first_line):
         for line in lines:
-            # Replace dots with zeros
-            clean = line.replace(".", "0")
-            
-            # Validation
+            #replacing the dots for zeroes
+            clean = line.replace(".", "0"
+                                 )
             total_cells = len(clean)
             n = int(math.isqrt(total_cells))
             if n * n != total_cells:
-                continue # Skip invalid lines
+                continue
                 
             b = int(math.isqrt(n))
             nums = [int(c) for c in clean]
-            
-            # Yield this grid
+
             yield [nums[i*n : (i+1)*n] for i in range(n)], n, b
 
-    # Case 2: Standard Format (One puzzle spanning multiple lines)
+    #standard format
     else:
         grid = []
         for line in lines:
@@ -61,7 +79,7 @@ def grid_to_cnf(grid, N, B, use_non_consecutive=True) -> Tuple[Iterable[Iterable
             for j in range(i + 1, len(lits)):
                 clauses.append([-lits[i], -lits[j]])
 
-    # 1. Standard Constraints
+    #1. standard 
     for r in range(N):
         for c in range(N):
             exactly_one([var_id(r, c, v) for v in range(1, N + 1)])
@@ -79,7 +97,7 @@ def grid_to_cnf(grid, N, B, use_non_consecutive=True) -> Tuple[Iterable[Iterable
                         lits.append(var_id(br + dr, bc + dc, v))
                 exactly_one(lits)
 
-    # 2. Non-Consecutive Constraint
+    # 2. non-consecutive
     if use_non_consecutive:
         def neighbors(r, c):
             if r > 0: yield r - 1, c
@@ -96,7 +114,7 @@ def grid_to_cnf(grid, N, B, use_non_consecutive=True) -> Tuple[Iterable[Iterable
                         if v > 1: clauses.append([-x, -var_id(r2, c2, v - 1)])
                         if v < N: clauses.append([-x, -var_id(r2, c2, v + 1)])
 
-    # 3. Clues
+    # 3. clues
     for r in range(N):
         for c in range(N):
             if grid[r][c] != 0:

@@ -95,23 +95,23 @@ def to_cnf(input_path: str) -> Tuple[Iterable[Iterable[int]], int]:
                 exactly_one(clauses, lits)
 
     # (5) Non-consecutive: orthogonal neighbors cannot differ by 1
-    def neighbors(r, c):
-        if r > 0: yield r - 1, c
-        if r + 1 < N: yield r + 1, c
-        if c > 0: yield r, c - 1
-        if c + 1 < N: yield r, c + 1
+    # def neighbors(r, c):
+    #     if r > 0: yield r - 1, c
+    #     if r + 1 < N: yield r + 1, c
+    #     if c > 0: yield r, c - 1
+    #     if c + 1 < N: yield r, c + 1
 
-    for r in range(N):
-        for c in range(N):
-            for (r2, c2) in neighbors(r, c):
-                if (r, c) > (r2, c2):
-                    continue
-                for v in range(1, N + 1):
-                    x = var_id(N, r, c, v)
-                    if v - 1 >= 1:
-                        clauses.append([-x, -var_id(N, r2, c2, v - 1)])
-                    if v + 1 <= N:
-                        clauses.append([-x, -var_id(N, r2, c2, v + 1)])
+    # for r in range(N):
+    #     for c in range(N):
+    #         for (r2, c2) in neighbors(r, c):
+    #             if (r, c) > (r2, c2):
+    #                 continue
+    #             for v in range(1, N + 1):
+    #                 x = var_id(N, r, c, v)
+    #                 if v - 1 >= 1:
+    #                     clauses.append([-x, -var_id(N, r2, c2, v - 1)])
+    #                 if v + 1 <= N:
+    #                     clauses.append([-x, -var_id(N, r2, c2, v + 1)])
 
     # (6) Clues: unit clauses for the given puzzle
     for r in range(N):

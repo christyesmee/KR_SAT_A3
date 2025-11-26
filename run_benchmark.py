@@ -6,7 +6,7 @@ import csv
 
 dir = "NCSudoku_benchmark_set" 
 puzzle_dirs = [
-                 "all_9x9"
+                 ""
             #    "test_sat",
             #    "9_sat", 
             #    "9_unsat", 

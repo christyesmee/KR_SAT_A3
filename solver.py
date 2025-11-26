@@ -9,7 +9,7 @@ Implement: solve_cnf(clauses) -> (status, model_or_None)
 from typing import Iterable, List, Tuple, Dict, Optional
 
 #if you want to change to "standard", "mom", or "jw" select here
-heuristic = "standard" 
+HEURISTIC = "standard" 
 BACKTRACK_COUNT = 0
 
 
@@ -147,9 +147,9 @@ def _choose_jw(clauses: List[List[int]], assignment: Dict[int, bool]) -> Optiona
 
 #choose variable (mom, jw or standard)  
 def _choose_var(num_vars: int, assignment: Dict[int, bool], clauses: List[List[int]]) -> Optional[int]:
-    if heuristic == "mom":
+    if HEURISTIC == "mom":
         return _choose_mom(clauses, assignment)
-    elif heuristic == "jw":
+    elif HEURISTIC == "jw":
         return _choose_jw(clauses, assignment)
     else:
         return _choose_standard(clauses, assignment)
@@ -202,12 +202,26 @@ def solve_cnf(clauses: Iterable[Iterable[int]], num_vars: int) -> Tuple[str, Non
     
     clause_list = [list(c) for c in clauses]
 
+    # --- NEW: Count Initial Propagations ---
+    # We run unit propagation ONCE on the raw puzzle
+    # The dictionary 'test_assign' will contain all forced moves
+    _, ok = _unit_propagate(clause_list, {})
+    
+    # The number of 'True' items in the dictionary = number of solved cells
+    initial_props = 0
+    if ok:
+        # We only count standard variables (not temp variables for optimization)
+        # But for simple comparison, just len(assignment) is fine
+        # Since _unit_propagate modifies the assignment dict in place:
+        temp_assign = {}
+        _unit_propagate(clause_list, temp_assign)
+        initial_props = len(temp_assign)
+    # ---------------------------------------
+
     is_sat = _dpll(clause_list, {}, num_vars)
     
-    #print stats
-    # Change this line at the very bottom of solver.py:
-    print(f"[{heuristic.upper()}] Result: {'SAT' if is_sat else 'UNSAT'} | Backtracks: {BACKTRACK_COUNT}")
-
+   # Bottom of solver.py
+    print(f"[{HEURISTIC.upper()}] Result: {'SAT' if is_sat else 'UNSAT'} | Backtracks: {BACKTRACK_COUNT} | InitProps: {initial_props}")
     if is_sat:
         return "SAT", None
     else:

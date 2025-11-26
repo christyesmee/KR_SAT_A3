@@ -17,64 +17,51 @@ Behavior:
 """
 
 import argparse
-from typing import Tuple, Iterable
-from encoder import to_cnf
-from solver import solve_cnf
+import sys
+import time
+from encoder import parse_file, grid_to_cnf  
+import solver # Import module to access global variable
 
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--in", dest="inp", required=True)
-    p.add_argument("--sat", dest="sat", action='store_true')
+    p.add_argument("--sat", dest="sat", action='store_true', help="Parse as DIMACS CNF format")
+    p.add_argument("--standard-only", action='store_true', help="Disable Non-Consecutive constraint")
     return p.parse_args()
 
 def main():
-
     args = parse_args()
 
-    if(args.sat):
-      clauses, num_vars = parse_dimacs(args.inp)
-    else:
-      clauses, num_vars = to_cnf(args.inp)
+    # 1. Handle standard SAT files (DIMACS)
+    if args.sat:
+        # (Keep this simple for now, though your encoder supports it)
+        print("DIMACS mode not fully integrated with bulk parser yet.")
+        return
 
-    status, _ = solve_cnf(clauses, num_vars)
-    print(status)
+    # 2. Handle Sudoku Puzzles (Text / Dot format)
+    puzzles_generator = parse_file(args.inp)
+    
+    use_nc_rule = not args.standard_only
 
-
-def parse_dimacs(input_path: str) -> Tuple[Iterable[Iterable[int]], int]:
-    close = False
-    if isinstance(input_path, str):
-        file = open(input_path, "r")
-        close = True
-    else:
-        file = input_path
-
-
-    line = file.readline()
-
-    components = line.strip().split(" ")
-
-    if len(components)!= 4 or components[0]!="p" or components[1]!="cnf":
-      print("Wrong file format! Expected first line to be 'p cnf NUM_VARS NUM_CLAUSES")
-      exit(1)
-
-    num_vars=int(components[2])
-    num_clauses=int(components[3])
-
-    clauses=[]
-
-    line=file.readline()
-    while(line):
-       numbers = [int(x) for x in line.strip().split(" ")]
-
-       if(numbers[-1]!=0):
-          print("Wrong format! Clause lines must be terminated with a 0")
-
-       clauses.append(numbers[:-1])
-
-       line=file.readline()
-
-
-    return clauses, num_vars
+    count = 0
+    for grid, N, B in puzzles_generator:
+        count += 1
+        
+        # Encode
+        clauses, num_vars = grid_to_cnf(grid, N, B, use_non_consecutive=use_nc_rule)
+        
+        # Solve & Time
+        start_t = time.time()
+        status, _ = solver.solve_cnf(clauses, num_vars)
+        end_t = time.time()
+        duration = end_t - start_t
+        
+        # PRINT STATS IN ONE CLEAN LINE FOR BENCHMARK
+        # Format: [PUZZLE] ID: 1 | Time: 0.05s | Result: SAT | Backtracks: 50
+        print(f"[PUZZLE] ID: {count} | Time: {duration:.4f}s | Result: {status} | Backtracks: {solver.BACKTRACK_COUNT}")
+        
+        # Flush stdout so benchmark sees it immediately
+        sys.stdout.flush()
 
 if __name__ == "__main__":
     main()

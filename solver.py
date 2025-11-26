@@ -9,7 +9,7 @@ Implement: solve_cnf(clauses) -> (status, model_or_None)
 from typing import Iterable, List, Tuple, Dict, Optional
 
 #if you want to change to "standard", "mom", or "jw" select here
-HEURISTIC = "standard" 
+HEURISTIC = "mom" 
 BACKTRACK_COUNT = 0
 
 
@@ -164,10 +164,16 @@ def _dpll(clauses: List[List[int]], assignment: Dict[int, bool], num_vars: int) 
 
     if not clauses:   # no clauses left → SAT
         return True
-
+    
     var = _choose_var(num_vars, assignment, clauses)
     if var is None:
         return True
+    
+    # --- DEBUG PRINT ---
+    # Only print the VERY FIRST choice (when assignment is empty)
+    if len(assignment) == 0:
+        print(f"[{HEURISTIC}] First Branching Variable Choice: {var}")
+    # -------------------
 
     # Try True
     new_assignment = assignment.copy()

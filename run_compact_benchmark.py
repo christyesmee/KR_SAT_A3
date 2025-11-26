@@ -13,8 +13,8 @@ BASE_DIR = os.path.join("NCSudoku_benchmark_set", "compact_sudokus")
 FILES_TO_TEST = [
     # "easy.txt",
     # "medium.txt",
-    # "hard.txt",
-    "all_9x9.txt"
+     "hard.txt",
+    #"all_9x9.txt"
 ]
 
 OUTPUT_CSV = "results_compact.csv"
